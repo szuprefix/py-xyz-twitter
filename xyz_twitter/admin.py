@@ -11,8 +11,9 @@ class UserAdmin(admin.ModelAdmin):
     date_hierarchy = 'create_time'
 
 @admin.register(models.Tweet)
-class UserAdmin(admin.ModelAdmin):
+class TweetAdmin(admin.ModelAdmin):
     list_display = ('user', 'full_text', 'created_at', 'create_time')
     raw_id_fields = ('user',)
+    list_filter = ('user', )
     search_fields = ("full_text", )
     date_hierarchy = 'create_time'

@@ -2,6 +2,7 @@
 # author = 'denishuang'
 from __future__ import unicode_literals
 from django.conf import settings
+from time import sleep
 
 CONF = getattr(settings, 'TWITTER', {})
 import tweepy
@@ -23,22 +24,13 @@ class Api(object):
         return self.api.get_user(screen_name=username)
 
     def get_tweets(self, uid):
-        try:
-            pages = tweepy.Cursor(
-                self.api.user_timeline,
-                id=uid,
-                tweet_mode="extended",
-                wait_on_rate_limit=True,
-                count=200  # limit to 200 tweets per page
-            ).pages()
-
-            tweets = [page for page in pages]
-
-        except:
-            tweets = None
-            pass
-
-        return tweets
+        return tweepy.Cursor(
+            self.api.user_timeline,
+            id=uid,
+            tweet_mode="extended",
+            wait_on_rate_limit=True,
+            count=200  # limit to 200 tweets per page
+        ).items()
 
     def serialize_user(self, u):
         fs = ['id', 'name', 'screen_name', 'url', 'profile_image_url_https', 'description', 'created_at',
@@ -67,11 +59,41 @@ def sync_user_tweets(user):
     from .helper import Api
     api = Api()
     u = api.get_user(user.screen_name)
-    pages = api.get_tweets(u.id_str)
-    for p in pages:
-        for a in p:
-            user.tweets.update_or_create(
-                tid=a.id_str, defaults=dict(
-                    tid=a.id_str, full_text=a.full_text, created_at=a.created_at
-                )
+    for t in api.get_tweets(u.id_str):
+        user.tweets.update_or_create(
+            tid=t.id_str, defaults=dict(
+                tid=t.id_str, full_text=t.full_text, created_at=t.created_at
             )
+        )
+
+
+class TwitterScan(object):
+
+    def __init__(self, callback=print):
+        from xyz_util.crawlutils import Browser
+        self.browser = Browser()
+        self.browser.get('https://www.twitter.com/explore')
+
+    def login(self, account=CONF.get('BROWSER_EMAIL', ''), password=None):
+        self.browser.element('a[data-testid="loginButton"]').click()
+        sleep(2)
+        e = self.browser.element('input[autocomplete="username"]')
+        self.browser.clean_with_send(e, account)
+        if account:
+            self.browser.driver.find_elements_by_css_selector('div[role="button"]')[2].click()
+            if password:
+                e = self.browser.element('input[name="password"]')
+                self.browser.clean_with_send(e, password)
+                self.browser.element('div[role="button"]').click()
+
+
+    def search_screen_name(self, name):
+        e = self.browser.element('input[enterkeyhint="search"]')
+        self.browser.clean_with_send(e, name)
+        e2 = self.browser.element('div[aria-multiselectable]')
+        sleep(2)
+        rs = self.browser.element_to_bs(e2).select('div[data-testid="typeaheadResult"]')
+        for r in rs[1:]:
+            for a in r.select('span'):
+                if a.text.startswith('@'):
+                    return a.text[1:]

@@ -12,12 +12,12 @@ class User(models.Model):
         verbose_name_plural = verbose_name = "用户"
         ordering = ('-created_at', '-create_time',)
 
+    screen_name = models.CharField("帐号名称", max_length=255,  unique=True)
     user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="twitter_users", blank=True,
                              null=True,
                              on_delete=models.PROTECT)
-    screen_name = models.CharField("帐号名称", max_length=255,  unique=True)
-    tid = models.CharField('推特编号', max_length=32, unique=True)
-    name = models.CharField("名称", max_length=255, blank=False)
+    tid = models.CharField('推特编号', max_length=32, blank=True, default='')
+    name = models.CharField("名称", max_length=255, blank=True, default='')
     url = models.URLField('URL地址', max_length=255, blank=True, default='')
     avatar = models.URLField('头像', max_length=255, blank=True, default='')
     description = models.CharField("简介", max_length=255, blank=True, default="")
