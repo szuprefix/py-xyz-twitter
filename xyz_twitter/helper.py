@@ -50,7 +50,7 @@ def update_or_create_user(screen_name):
     from .models import User
     user, created = User.objects.update_or_create(screen_name=screen_name, defaults=dict(
         tid=u.id_str, name=u.name, url=u.url, avatar=u.profile_image_url_https, description=u.description,
-        created_at=u.created_at, detail=api.serialize_user(u)
+        created_at=u.created_at.replace(tzinfo=None), detail=api.serialize_user(u)
     ))
     return user
 
@@ -62,7 +62,11 @@ def sync_user_tweets(user):
     for t in api.get_tweets(u.id_str):
         user.tweets.update_or_create(
             tid=t.id_str, defaults=dict(
-                tid=t.id_str, full_text=t.full_text, created_at=t.created_at
+                tid=t.id_str,
+                full_text=t.full_text,
+                created_at=t.created_at.replace(tzinfo=None),
+                favorite_count=t.favorite_count,
+                retweet_count=t.retweet_count
             )
         )
 
@@ -85,7 +89,6 @@ class TwitterScan(object):
                 e = self.browser.element('input[name="password"]')
                 self.browser.clean_with_send(e, password)
                 self.browser.element('div[role="button"]').click()
-
 
     def search_screen_name(self, name):
         e = self.browser.element('input[enterkeyhint="search"]')

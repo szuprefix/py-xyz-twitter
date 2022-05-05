@@ -10,9 +10,9 @@ from . import choices
 class User(models.Model):
     class Meta:
         verbose_name_plural = verbose_name = "用户"
-        ordering = ('-created_at', )
+        ordering = ('-created_at',)
 
-    screen_name = models.CharField("帐号名称", max_length=255,  unique=True)
+    screen_name = models.CharField("帐号名称", max_length=255, unique=True)
     user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="twitter_users", blank=True,
                              null=True,
                              on_delete=models.PROTECT)
@@ -37,7 +37,7 @@ class User(models.Model):
 class Tweet(models.Model):
     class Meta:
         verbose_name_plural = verbose_name = "推文"
-        ordering = ('-is_active', '-created_at', '-create_time',)
+        ordering = ('-created_at',)
 
     user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="tweets",
                              on_delete=models.PROTECT)
@@ -47,6 +47,8 @@ class Tweet(models.Model):
     created_at = models.DateTimeField("推特创建时间", blank=True, null=True)
     create_time = models.DateTimeField("创建时间", auto_now_add=True)
     is_active = models.BooleanField("有效", blank=False, default=True)
+    favorite_count = models.PositiveIntegerField('喜欢数', blank=True, default=0)
+    retweet_count = models.PositiveIntegerField('转发数', blank=True, default=0)
 
     def __str__(self):
         return self.full_text
