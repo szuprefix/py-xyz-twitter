@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as AUser
 from xyz_util import modelutils
 from . import choices
 
@@ -13,7 +13,7 @@ class User(models.Model):
         ordering = ('-created_at',)
 
     screen_name = models.CharField("帐号名称", max_length=255, unique=True)
-    user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="twitter_users", blank=True,
+    user = models.ForeignKey(AUser, verbose_name=AUser._meta.verbose_name, related_name="twitter_users", blank=True,
                              null=True,
                              on_delete=models.PROTECT)
     tid = models.CharField('推特编号', max_length=32, blank=True, default='')
@@ -44,7 +44,7 @@ class Tweet(models.Model):
     tid = models.CharField('推特编号', max_length=32, blank=True, unique=True)
     full_text = models.TextField("名称", blank=False)
     url = models.URLField('URL地址', max_length=255, blank=True, default='')
-    created_at = models.DateTimeField("推特创建时间", blank=True, null=True)
+    created_at = models.DateTimeField("推文创建时间", blank=True, null=True)
     create_time = models.DateTimeField("创建时间", auto_now_add=True)
     is_active = models.BooleanField("有效", blank=False, default=True)
     favorite_count = models.PositiveIntegerField('喜欢数', blank=True, default=0)
