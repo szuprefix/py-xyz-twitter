@@ -3,7 +3,7 @@ from __future__ import division
 
 from xyz_restful.mixins import BatchActionMixin
 from . import models, serializers
-from rest_framework import viewsets
+from rest_framework import viewsets, decorators, response
 from xyz_restful.decorators import register
 
 @register()
@@ -16,6 +16,10 @@ class UserViewSet(BatchActionMixin, viewsets.ModelViewSet):
         'create_time': ['range']
     }
     ordering_fields = ('is_active', 'title', 'create_time', 'created_at')
+
+    @decorators.action(['POST'], detail=False, permission_classes=[])
+    def oauth2(self, request):
+        return response(dict(result='ok'))
 
 @register()
 class TweetViewSet(BatchActionMixin, viewsets.ModelViewSet):
