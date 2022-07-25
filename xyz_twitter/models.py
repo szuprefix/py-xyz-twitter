@@ -14,8 +14,7 @@ class User(models.Model):
 
     screen_name = models.CharField("帐号名称", max_length=255, unique=True)
     user = models.ForeignKey(AUser, verbose_name=AUser._meta.verbose_name, related_name="twitter_users", blank=True,
-                             null=True,
-                             on_delete=models.PROTECT)
+                             null=True, on_delete=models.PROTECT)
     tid = models.CharField('推特编号', max_length=32, blank=True, default='')
     name = models.CharField("名称", max_length=255, blank=True, default='')
     url = models.URLField('URL地址', max_length=255, blank=True, default='')
@@ -39,7 +38,7 @@ class Tweet(models.Model):
         verbose_name_plural = verbose_name = "推文"
         ordering = ('-created_at',)
 
-    user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="tweets",
+    user = models.ForeignKey(User, verbose_name=User._meta.verbose_name, related_name="twitter_tweets",
                              on_delete=models.PROTECT)
     tid = models.CharField('推特编号', max_length=32, blank=True, unique=True)
     full_text = models.TextField("名称", blank=False)

@@ -3,12 +3,14 @@
 from __future__ import unicode_literals
 from django.conf import settings
 from time import sleep
+from django.core.cache import cache
+import tweepy
 
 CONF = getattr(settings, 'TWITTER', {})
-import tweepy
 
 
 class Api(object):
+    cache_key_format = "TWITTER_%s_%s"
 
     def __init__(self, conf=CONF):
         self.conf = conf
@@ -18,7 +20,14 @@ class Api(object):
             conf["ACCESS_TOKEN"],
             conf["ACCESS_TOKEN_SECRET"]
         )
+        self.appid = conf["CONSUMER_KEY"]
         self.api = tweepy.API(auth)
+
+    def get_cache(self, key):
+        return cache.get(self.cache_key_format % (self.appid, key))
+
+    def set_cache(self, key, data):
+        return cache.set(self.cache_key_format % (self.appid, key), data)
 
     def get_user(self, username):
         return self.api.get_user(screen_name=username)
@@ -42,6 +51,23 @@ class Api(object):
         d = dict([(f, getattr(t, f)) for f in fs])
         d['user_id'] = t.user.id
         return d
+
+    def get_auth_url(self, callback):
+        ouh = tweepy.OAuth1UserHandler(
+            self.conf['CONSUMER_KEY'], self.conf['CONSUMER_KEY_SECRET'],
+            callback=callback
+        )
+        url = ouh.get_authorization_url()
+        rt = ouh.request_token
+        self.set_cache(rt['oauth_token'], rt)
+        return url
+
+    def get_access_token(self, d):
+        ouh = tweepy.OAuth1UserHandler(
+            self.conf['CONSUMER_KEY'], self.conf['CONSUMER_KEY_SECRET']
+        )
+        ouh.request_token = self.get_cache(d['oauth_token'])
+        return ouh.get_access_token(d['oauth_verifier'])
 
 
 def update_or_create_user(screen_name):

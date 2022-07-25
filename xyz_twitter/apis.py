@@ -17,9 +17,14 @@ class UserViewSet(BatchActionMixin, viewsets.ModelViewSet):
     }
     ordering_fields = ('is_active', 'title', 'create_time', 'created_at')
 
-    @decorators.action(['POST'], detail=False, permission_classes=[])
+    @decorators.action(['GET', 'POST'], detail=False, permission_classes=[])
     def oauth2(self, request):
-        return response(dict(result='ok'))
+        rd = request.query_params
+        from .helper import Api
+        api = Api ()
+        return response.Response(dict(result='ok'))
+
+
 
 @register()
 class TweetViewSet(BatchActionMixin, viewsets.ModelViewSet):
